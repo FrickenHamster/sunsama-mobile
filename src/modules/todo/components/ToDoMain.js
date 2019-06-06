@@ -4,22 +4,29 @@ import { Card } from "react-native-material-ui/src";
 import Entypo from 'react-native-vector-icons/dist/Entypo';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 
-const TaskItem = ({task}) => {
-	return (
-		<Card>
-			<View style={[styles.taskItemInner, task.completed ? styles.taskItemInnerCompleted : null]}>
-				<Text style={styles.taskItemTitleText}>{task.title}</Text>
-				<Ionicons
-					name={task.completed ? 'ios-checkmark-circle' : 'ios-checkmark-circle-outline'}
-					size={24}
-					color={task.completed ? 'green' : 'black'}
-				/>
-			</View>
-		</Card>
-	)
-};
+import TaskList from './TaskList';
 
 export default class ToDoMain extends Component {
+	
+	constructor(props) {
+		super(props);
+		this.state = {
+			tasks: [
+				{
+					title: 'Schedule demo with Airbnb',
+					completed: false
+				},
+				{
+					title: 'Review design feedback on plan your day mockups your day mockups your day mockups your day mockups your day mockups your day mockups',
+					completed: false,
+				},
+				{
+					title: 'Review design feedback on plan your day mockups',
+					completed: true,
+				}
+			]
+		}
+	}
 
 	render() {
 		return (
@@ -30,18 +37,7 @@ export default class ToDoMain extends Component {
 					</Text>
 					<Text style={styles.headerDate}>May 7</Text>
 				</View>
-				<TaskItem
-					task={{
-						title: 'Schedule demo with Airbnb',
-						completed: false
-					}}
-				/>
-				<TaskItem
-					task={{
-						title: 'Review design feedback on plan your day mockups',
-						completed: true,
-					}}
-				/>
+				<TaskList tasks={this.state.tasks}/>
 			</View>
 		)
 	}
@@ -66,17 +62,5 @@ const styles = StyleSheet.create({
 		color: '#5d5d5d',
 		fontSize: 14
 	},
-	taskItemInner: {
-		padding: 8,
-	},
-	taskItemInnerCompleted: {
-		opacity: 0.3,
-	},
-	taskItemTitleText: {
-		color: 'black',
-		fontFamily: 'Roboto-Regular',
-		fontSize: 14,
-		paddingBottom: 2
-	}
 });
 
