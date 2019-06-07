@@ -4,6 +4,8 @@ import { SwipeListView } from "react-native-swipe-list-view";
 import { Card } from "react-native-material-ui";
 import { StyleSheet, Text, View, TouchableHighlight } from "react-native";
 import Ionicons from "react-native-vector-icons/dist/Ionicons";
+import { Mutation } from "react-apollo";
+import { CREATE_TASK_MUTATION, DELETE_TASK_MUTATION, TASKS_QUERY } from "../queries";
 
 const TaskItem = ({task}) => {
 	return (
@@ -21,33 +23,57 @@ const TaskItem = ({task}) => {
 };
 
 export default class TaskList extends Component {
-	
+
 	render() {
 		return (
-			<SwipeListView
-				useFlatList
-				disableRightSwipe
-				data={this.props.tasks}
-				renderItem={(data, rowMap) => {
-					return (
-						<TouchableHighlight>
+			<Mutation mutation={DELETE_TASK_MUTATION}>
+				{
+					mutate => {
+						return (
+							<SwipeListView
+								useFlatList
+								disableRightSwipe
+								data={this.props.tasks}
+								renderItem={(data, rowMap) => {
+									return (
+										<TouchableHighlight>
 
-						<TaskItem
-						task={data.item}
-					/></TouchableHighlight>)
+											<TaskItem
+												task={data.item}
+											/></TouchableHighlight>)
 
-				}}
-				renderHiddenItem={ (data, rowMap) => {
-					return (
-					<View style={{backgroundColor: 'red', flex: 1, marginHorizontal: 8, marginVertical: 5}}>
-					</View>)
-				}}
-				
-				onSwipeValueChange={(swipeData) => {
-					console.log('swipe', swipeData);
-				}}
-				rightOpenValue={-300}
-			/>
+								}}
+								renderHiddenItem={(data, rowMap) => {
+									return (
+										<View style={{
+											backgroundColor: 'red',
+											flex: 1,
+											marginHorizontal: 8,
+											marginVertical: 5
+										}}>
+										</View>)
+								}}
+
+								onSwipeValueChange={(swipeData) => {
+									if (swipeData.value < -375) {
+										console.log('delete', swipeData);
+										mutate({
+											variables: {_id: swipeData.key},
+											refetchQueries: [
+												{
+													query: TASKS_QUERY,
+												}
+											]});
+									}
+								}}
+								rightOpenValue={-375}
+								keyExtractor={(rowData, index) => {
+									return rowData._id;
+								}}
+							/>);
+					}
+				}
+			</Mutation>
 		)
 	}
 
