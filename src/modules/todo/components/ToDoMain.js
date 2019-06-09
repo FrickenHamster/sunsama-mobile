@@ -12,6 +12,8 @@ import NewTaskInput from "./NewTaskInput";
 import { Calendar } from "react-native-calendars";
 import { TASKS_QUERY } from "../queries";
 
+import RNEventSource from 'react-native-event-source';
+
 
 export default class ToDoMain extends Component {
 
@@ -21,6 +23,15 @@ export default class ToDoMain extends Component {
 			date: new Date(),
 			calendarStatus: 'none',
 		}
+	}
+
+	componentDidMount() {
+		/*const evtSource = new EventSource('http://10.0.2.2:8000/events');
+		evtSource.addEventListener('poop', event =>
+			console.log(event));*/
+		const eventSource = new RNEventSource('http://10.0.2.2:8000/events');
+		eventSource.addEventListener('message', event =>
+			console.log(event))
 	}
 
 	render() {
@@ -34,7 +45,7 @@ export default class ToDoMain extends Component {
 					<View style={styles.header}>
 						<Text style={styles.headerDay}>Tuesday
 							<Entypo
-								name={this.state.calendarStatus === 'none' ? 'triangle-down' : 'triangle-up' }
+								name={this.state.calendarStatus === 'none' ? 'triangle-down' : 'triangle-up'}
 								size={18}
 							/>
 						</Text>
@@ -54,8 +65,6 @@ export default class ToDoMain extends Component {
 
 						current={moment(this.state.date).format('YYYY-MM-DD')}
 						onDayPress={day => {
-							console.log('sels', day);
-
 							this.setState({date: moment(day.dateString, 'YYYY-MM-DD').toDate()})
 						}}
 						markedDates={{
@@ -64,16 +73,7 @@ export default class ToDoMain extends Component {
 					/>
 				}
 				<NewTaskInput/>
-				<Query query={TASKS_QUERY}>
-					{({loading, error, data}) => {
-						console.log(loading, error, data);
-						if (loading) return <Text>Fetching</Text>
-						if (error) return <Text>Error</Text>
-						return (
-							<TaskList tasks={data.tasks}/>
-						)
-					}}
-				</Query>
+				<TaskList date={this.state.date}/>
 			</View>
 		)
 	}
