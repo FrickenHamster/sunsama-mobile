@@ -22,7 +22,10 @@ export default class ToDoMain extends Component {
 		this.state = {
 			date: new Date(),
 			calendarStatus: 'none',
-		}
+		};
+		
+		this.handleHeaderPress = this.handleHeaderPress.bind(this);
+		this.handleChangeDisplayDate = this.handleChangeDisplayDate.bind(this);
 	}
 
 	componentDidMount() {
@@ -33,23 +36,41 @@ export default class ToDoMain extends Component {
 		eventSource.addEventListener('message', event =>
 			console.log(event))
 	}
+	
+	handleHeaderPress() {
+		this.setState({calendarStatus: this.state.calendarStatus === 'none' ? 'current' : 'none'})
+	}
+	
+	handleChangeDisplayDate(day) {
+		this.setState({
+			date: moment(day.dateString, 'YYYY-MM-DD').toDate(),
+			calendarStatus: 'none',
+		});
+		this.setState({calendarStatus: this.state.calendarStatus === 'none' ? 'current' : 'none'})
+	}
+	
+	handleChangeTaskDate(day) {
+		
+	}
 
 	render() {
+		const mm = moment(this.state.date);
+		const dayOfWeekText = mm.format('dddd');
+		const dateText = mm.format('MMMM do');
+		
 		return (
 			<View style={styles.container}>
 				<TouchableOpacity
-					onPress={() => {
-						this.setState({calendarStatus: this.state.calendarStatus === 'none' ? 'current' : 'none'})
-					}}
+					onPress={this.handleHeaderPress}
 				>
 					<View style={styles.header}>
-						<Text style={styles.headerDay}>Tuesday
+						<Text style={styles.headerDay}>{dayOfWeekText}
 							<Entypo
 								name={this.state.calendarStatus === 'none' ? 'triangle-down' : 'triangle-up'}
 								size={18}
 							/>
 						</Text>
-						<Text style={styles.headerDate}>May 7</Text>
+						<Text style={styles.headerDate}>{dateText}</Text>
 					</View>
 				</TouchableOpacity>
 				{
@@ -64,9 +85,7 @@ export default class ToDoMain extends Component {
 						}}
 
 						current={moment(this.state.date).format('YYYY-MM-DD')}
-						onDayPress={day => {
-							this.setState({date: moment(day.dateString, 'YYYY-MM-DD').toDate()})
-						}}
+						onDayPress={this.handleChangeDisplayDate}
 						markedDates={{
 							[moment(this.state.date).format('YYYY-MM-DD')]: {selected: true}
 						}}
