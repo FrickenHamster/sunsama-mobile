@@ -35,7 +35,7 @@ class TaskList extends Component {
 	}
 	
 	inDate(date) {
-		return moment(this.props.date).diff(moment(date), 'days') <= 0;
+		return moment(this.props.date).diff(moment(date), 'days') === 0;
 	}
 
 	render() {
@@ -44,11 +44,12 @@ class TaskList extends Component {
 		return (
 			<Query query={TASKS_QUERY} variables={{startDate, endDate}}>
 				{
-					({loading, error, data, client}) => {
+					({loading, error, data, client, cache}) => {
 						if (loading)
 							return <Text>loading</Text>
 						if (error)
 							return <Text>error {error}</Text>
+
 						const displayData = [
 							...data.tasks.filter(item => (!item.completed && this.inDate(item.taskDate))),
 							...data.tasks.filter(item => (item.completed && this.inDate(item.taskDate)))

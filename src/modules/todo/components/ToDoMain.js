@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Alert, StyleSheet, Text, TextInput, View, Button, TouchableOpacity } from 'react-native';
 import { Card, } from "react-native-material-ui/src";
-import { Mutation, Query } from 'react-apollo';
+import { Mutation, Query, withApollo } from 'react-apollo';
 import Entypo from 'react-native-vector-icons/dist/Entypo';
 import Ionicons from 'react-native-vector-icons/dist/Ionicons';
 import gql from 'graphql-tag';
@@ -15,7 +15,7 @@ import { CHANGE_TASK_DATE, TASKS_QUERY } from "../queries";
 import RNEventSource from 'react-native-event-source';
 
 
-export default class ToDoMain extends Component {
+class ToDoMain extends Component {
 
 	constructor(props) {
 		super(props);
@@ -35,8 +35,10 @@ export default class ToDoMain extends Component {
 		evtSource.addEventListener('poop', event =>
 			console.log(event));*/
 		const eventSource = new RNEventSource('http://10.0.2.2:8000/events');
-		eventSource.addEventListener('message', event =>
-			console.log('got event',event))
+		eventSource.addEventListener('taskEvent', event => {
+			console.log('got event', event)
+			this.props.client.reFetchObservableQueries();
+		})
 	}
 
 	handleHeaderPress() {
@@ -104,11 +106,17 @@ export default class ToDoMain extends Component {
 													variables: {
 														_id: this.state.changeTask._id,
 														taskDate: moment().date(day.day).month(day.month - 1).year(day.year).toDate(),
+													},
+													update: (cache, {data}) => {
+														if (data) {
+															
+															console.log('asdf',data, cache);
+														}
 													}
 												})
 											} catch (e) {
 												console.warn('error setting date', e);
-												Alert.alert('Error changing task dacte', 'please try again')
+												Alert.alert('Error changing task date', 'please try again')
 											}
 											this.setState({calendarStatus: 'none'});
 										})}
@@ -133,6 +141,8 @@ export default class ToDoMain extends Component {
 	}
 }
 
+export default withApollo(ToDoMain);
+
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
@@ -153,4 +163,5 @@ const styles = StyleSheet.create({
 		fontSize: 14
 	},
 });
+
 
