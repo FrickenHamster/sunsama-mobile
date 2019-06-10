@@ -13,13 +13,14 @@ query tasks($startDate: Date, $endDate: Date) {
 `;
 
 export const CREATE_TASK_MUTATION = gql`
-	mutation createTaskMutation($title: String!) {
-		createTask(title: $title) {
-		  _id,
-		  title,
-		  completed
-		}
-	  }
+mutation createTask($title: String!, $taskDate: Date!) {
+  createTask(title: $title, taskDate: $taskDate) {
+    _id
+    title
+    completed
+    taskDate
+  }
+}
 `;
 
 export const COMPLETE_TASK = gql`
@@ -34,8 +35,8 @@ mutation completeTask($_id: ID!, $completed: Boolean!) {
 `;
 
 export const CHANGE_TASK_DATE = gql`
-mutation completeTask($_id: ID!, $completed: Boolean!) {
-  completeTask(_id: $_id, completed: $completed) {
+mutation changeTaskDate($_id: ID!, $taskDate: Date!) {
+  changeTaskDate(_id: $_id, taskDate: $taskDate) {
     _id
     taskDate
     title

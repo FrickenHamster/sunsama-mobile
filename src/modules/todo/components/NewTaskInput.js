@@ -3,6 +3,7 @@ import { Button, Keyboard, StyleSheet, TextInput } from "react-native";
 import { Card } from "react-native-material-ui";
 import { Mutation } from "react-apollo";
 import { TASKS_QUERY, CREATE_TASK_MUTATION } from "../queries";
+import moment from 'moment';
 
 
 export default class NewTaskInput extends Component {
@@ -21,8 +22,10 @@ export default class NewTaskInput extends Component {
 	}
 
 	render() {
+		let startDate = moment(this.props.currentDate).startOf('day');
+		const endDate = moment(this.props.currentDate).startOf('day').add(1, 'day');
 		return (
-			<Mutation mutation={CREATE_TASK_MUTATION} variables={{title: this.state.text}}>
+			<Mutation mutation={CREATE_TASK_MUTATION} variables={{title: this.state.text, taskDate: this.props.currentDate.getTime()}}>
 				{
 					mutate => {
 						return (
@@ -39,11 +42,15 @@ export default class NewTaskInput extends Component {
 										try {
 											Keyboard.dismiss();
 											const result = await mutate({
-												refetchQueries: [
-													{
-														query: TASKS_QUERY,
+												update: (cache, {data}) => {
+													if (data) {
+														const { tasks } = cache.readQuery({query: TASKS_QUERY, variables:{startDate, endDate}});
+														cache.writeQuery({
+															query: TASKS_QUERY, variables:{startDate, endDate},
+															data: {tasks: [...tasks, data.createTask]}
+														});
 													}
-												]
+												}
 											});
 											this.setState({text: ''});
 										} catch (e) {

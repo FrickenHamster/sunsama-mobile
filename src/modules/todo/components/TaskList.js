@@ -4,17 +4,10 @@ import { SwipeListView } from "react-native-swipe-list-view";
 import { Card } from "react-native-material-ui";
 import { StyleSheet, Text, View, TouchableHighlight, TouchableOpacity } from "react-native";
 import Ionicons from "react-native-vector-icons/dist/Ionicons";
-import { Mutation, Query } from "react-apollo";
-import { COMPLETE_TASK, CREATE_TASK_MUTATION, DELETE_TASK_MUTATION, TASKS_QUERY} from "../queries";
+import { Query } from "react-apollo";
+import { COMPLETE_TASK, DELETE_TASK_MUTATION, TASKS_QUERY} from "../queries";
 import moment from "moment";
-import gql from "graphql-tag";
 
-
-const GET_TASKS = gql`
-	query GetTasks {
-		tasks
-	}
-`;
 
 const TaskItem = ({task, onCompletePress}) => {
 	return (
@@ -40,6 +33,10 @@ class TaskList extends Component {
 			dirs: {},
 		}
 	}
+	
+	inDate(date) {
+		return moment(this.props.date).diff(moment(date), 'days') <= 0;
+	}
 
 	render() {
 		let startDate = moment(this.props.date).startOf('day');
@@ -52,7 +49,10 @@ class TaskList extends Component {
 							return <Text>loading</Text>
 						if (error)
 							return <Text>error {error}</Text>
-						const displayData = [...data.tasks.filter(item => !item.completed), ...data.tasks.filter(item => item.completed)];
+						const displayData = [
+							...data.tasks.filter(item => (!item.completed && this.inDate(item.taskDate))),
+							...data.tasks.filter(item => (item.completed && this.inDate(item.taskDate)))
+						];
 						return (<SwipeListView
 							useFlatList
 							data={displayData}
@@ -93,21 +93,17 @@ class TaskList extends Component {
 
 								if (swipeData.value < -375) {
 
-									console.log('deletes');
 									client.mutate({
 										variables: {_id: swipeData.key},
 										mutation: DELETE_TASK_MUTATION,
 										update: (cache, {data}) => {
-											console.log('dats', data, data.success);
 											if (data.deleteTask.success) {
-												const tasks = cache.readQuery({query: TASKS_QUERY})
-												console.log('potato', tasks);
-												/*cache.writeQuery({
-													query: GET_TASKS
-												})*/
+												const { tasks } = client.cache.readQuery({query: TASKS_QUERY, variables:{startDate, endDate}});
+												cache.writeQuery({
+													query: TASKS_QUERY, variables:{startDate, endDate},
+													data: {tasks: tasks.filter(item => item._id !== swipeData.key)}
+												})
 											}
-											
-											
 										}
 										/*refetchQueries: [
 											{
@@ -115,11 +111,20 @@ class TaskList extends Component {
 											}
 										]*/
 									});
-								} else if (swipeData.value > 375){
-									
+								} else if (swipeData.value > 335){
+									let task;
+									for (const item of data.tasks)
+										if (item._id === swipeData.key) {
+											task = item;
+											break;
+										}
+									if (task)
+										this.props.onStartChangeTaskDate(task)
 								}
 							}}
 							rightOpenValue={-375}
+							stopRightSwipe={-375}
+							stopLeftSwipe={375}
 							keyExtractor={(rowData, index) => {
 								return rowData._id;
 							}}
