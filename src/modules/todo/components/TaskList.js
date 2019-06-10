@@ -35,6 +35,7 @@ class TaskList extends Component {
 	}
 	
 	inDate(date) {
+		console.log('date test',moment(this.props.date).diff(moment(date), 'days') );
 		return moment(this.props.date).diff(moment(date), 'days') === 0;
 	}
 

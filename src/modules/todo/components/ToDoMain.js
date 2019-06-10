@@ -10,9 +10,10 @@ import moment from 'moment';
 import TaskList from './TaskList';
 import NewTaskInput from "./NewTaskInput";
 import { Calendar } from "react-native-calendars";
-import { CHANGE_TASK_DATE, TASKS_QUERY } from "../queries";
+import { CHANGE_TASK_DATE, TASK_DATES_QUERY, TASKS_QUERY } from "../queries";
 
 import RNEventSource from 'react-native-event-source';
+import { BACKEND } from "../../shared/constants";
 
 
 class ToDoMain extends Component {
@@ -23,6 +24,7 @@ class ToDoMain extends Component {
 			date: new Date(),
 			calendarStatus: 'none',
 			changeTask: null,
+			taskDates: [],
 		};
 
 		this.handleHeaderPress = this.handleHeaderPress.bind(this);
@@ -30,15 +32,24 @@ class ToDoMain extends Component {
 		this.handleStartChangeTaskDate = this.handleStartChangeTaskDate.bind(this);
 	}
 
-	componentDidMount() {
+	async componentDidMount() {
 		/*const evtSource = new EventSource('http://10.0.2.2:8000/events');
 		evtSource.addEventListener('poop', event =>
 			console.log(event));*/
-		const eventSource = new RNEventSource('http://10.0.2.2:8000/events');
-		eventSource.addEventListener('taskEvent', event => {
+		const eventSource = new RNEventSource(`${BACKEND}/events`);
+		eventSource.addEventListener('taskEvent', async event => {
 			console.log('got event', event)
 			this.props.client.reFetchObservableQueries();
-		})
+			const result = await this.props.client.query({
+				query: TASK_DATES_QUERY,
+			});
+			this.setState({taskDates: result.data.taskDays.map(item => moment(item).format('YYYY-MM-DD'))});
+		});
+		
+		const result = await this.props.client.query({
+			query: TASK_DATES_QUERY,
+		});
+		this.setState({taskDates: result.data.taskDays.map(item => moment(item).format('YYYY-MM-DD'))});
 	}
 
 	handleHeaderPress() {
@@ -65,6 +76,12 @@ class ToDoMain extends Component {
 		const mm = moment(this.state.date);
 		const dayOfWeekText = mm.format('dddd');
 		const dateText = mm.format('MMMM Do');
+		
+		const taskMarkDates = {};
+		for (const date of this.state.taskDates) {
+			taskMarkDates[date] = {marked: true};
+		}
+		taskMarkDates[moment(this.state.date).format('YYYY-MM-DD')] = {selected: true};
 
 		return (
 			<View style={styles.container}>
@@ -120,9 +137,7 @@ class ToDoMain extends Component {
 											}
 											this.setState({calendarStatus: 'none'});
 										})}
-									markedDates={{
-										[moment(this.state.date).format('YYYY-MM-DD')]: {selected: true}
-									}}
+									markedDates={taskMarkDates}
 								/>);
 							}
 						}

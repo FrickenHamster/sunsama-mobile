@@ -36,6 +36,8 @@ export default class NewTaskInput extends Component {
 									onChangeText={this.handleChangeText}
 									value={this.state.text}
 								/>
+								{
+									this.state.text !== '' && 
 								<Button
 									title="Submit"
 									onPress={async() => {
@@ -57,7 +59,7 @@ export default class NewTaskInput extends Component {
 											console.warn('error mutate', e);
 										}
 									}}
-								/>
+								/>}
 							</Card>)
 					}
 				}

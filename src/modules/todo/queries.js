@@ -12,6 +12,12 @@ query tasks($startDate: Date, $endDate: Date) {
 }
 `;
 
+export const TASK_DATES_QUERY = gql`
+query tasks {
+  taskDays
+}
+`;
+
 export const CREATE_TASK_MUTATION = gql`
 mutation createTask($title: String!, $taskDate: Date!) {
   createTask(title: $title, taskDate: $taskDate) {
